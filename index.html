@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astra AI - Created by Danien Aarzoo Luck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .chat-container {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 20px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            text-align: right;
+        }
+        
+        .message-content {
+            display: inline-block;
+            padding: 15px 20px;
+            border-radius: 20px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.ai .message-content {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-label {
+            font-size: 0.8em;
+            margin-bottom: 5px;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        
+        .message.user .message-label {
+            color: #667eea;
+        }
+        
+        .message.ai .message-label {
+            color: #764ba2;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .input-area input:focus {
+            border-color: #667eea;
+        }
+        
+        .input-area button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+        
+        .input-area button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .input-area button:active {
+            transform: translateY(0);
+        }
+        
+        .input-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .thinking {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .info-panel {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            margin: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-panel h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .info-panel p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px;
+            justify-content: center;
+        }
+        
+        .suggestion-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .suggestion-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .chat-messages {
+                max-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌟 Astra AI</h1>
+        <p>Your Personal AI Assistant</p>
+        <p style="font-size: 0.9em; opacity: 0.8;">Created by Danien Aarzoo Luck</p>
+    </div>
+    
+    <div class="info-panel" id="infoPanel" style="display: none;">
+        <h3>✨ About Astra</h3>
+        <p id="infoText"></p>
+    </div>
+    
+    <div class="suggestions">
+        <button class="suggestion-btn" onclick="sendMessage('Who are you?')">Who are you?</button>
+        <button class="suggestion-btn" onclick="sendMessage('Who created you?')">Who created you?</button>
+        <button class="suggestion-btn" onclick="sendMessage('What can you do?')">Your capabilities?</button>
+        <button class="suggestion-btn" onclick="sendMessage('Tell me about artificial intelligence')">About AI</button>
+        <button class="suggestion-btn" onclick="sendMessage('Calculate 25 * 4')">Do math</button>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="message-label">Astra</div>
+                <div class="message-content">
+                    Hello! I'm Astra, your personal AI assistant created by Danien Aarzoo Luck. I can answer questions using Wikipedia, do math, and chat with you. What would you like to know?
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="userInput" 
+                placeholder="Ask me anything..."
+                onkeypress="if(event.key==='Enter') sendMessage()"
+            >
+            <button onclick="sendMessage()" id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace with your Render URL
+        const API_URL = 'https://your-app-name.onrender.com';
+        
+        let isTyping = false;
+        
+        // Load AI info on page load
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_URL}/about`);
+                const data = await response.json();
+                
+                const infoText = `I'm ${data.ai_name}, created by ${data.creator.name} (age ${data.creator.age}). 
+                My personality: ${data.personality.join(', ')}. 
+                I can help you with Wikipedia searches, basic math, and friendly conversations!`;
+                
+                document.getElementById('infoText').textContent = infoText;
+                document.getElementById('infoPanel').style.display = 'block';
+            } catch (error) {
+                console.error('Could not load AI info:', error);
+            }
+        };
+        
+        function addMessage(content, isUser = false) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            const label = document.createElement('div');
+            label.className = 'message-label';
+            label.textContent = isUser ? 'You' : 'Astra';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(label);
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function showThinking() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'thinking';
+            thinkingDiv.id = 'thinking';
+            thinkingDiv.textContent = 'Astra is thinking...';
+            messagesDiv.appendChild(thinkingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function hideThinking() {
+            const thinkingDiv = document.getElementById('thinking');
+            if (thinkingDiv) {
+                thinkingDiv.remove();
+            }
+        }
+        
+        async function sendMessage(predefinedMessage = null) {
+            if (isTyping) return;
+            
+            const input = document.getElementById('userInput');
+            const message = predefinedMessage || input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, true);
+            
+            // Clear input
+            if (!predefinedMessage) {
+                input.value = '';
+            }
+            
+            // Show thinking
+            isTyping = true;
+            document.getElementById('sendBtn').disabled = true;
+            showThinking();
+            
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                hideThinking();
+                
+                if (data.error) {
+                    addMessage(`Sorry, I encountered an error: ${data.error}`, false);
+                } else {
+                    addMessage(data.ai_response, false);
+                }
+                
+            } catch (error) {
+                hideThinking();
+                addMessage(`Sorry, I couldn't connect to my server. Make sure the backend is running! Error: ${error.message}`, false);
+            } finally {
+                isTyping = false;
+                document.getElementById('sendBtn').disabled = false;
+                input.focus();
+            }
+        }
+        
+        // Focus input on load
+        document.getElementById('userInput').focus();
+    </script>
+</body>
+  </html>
